@@ -8,9 +8,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RangeSlider
 import androidx.compose.material3.SliderDefaults
@@ -100,25 +102,10 @@ fun BpmRangeSlider(
                 },
                 valueRange = 60f..240f,
                 steps = 0,
-                thumb = {
-                    Box(
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .size(16.dp)
-                    ) {
-                        Canvas(modifier = Modifier.fillMaxSize()) {
-                            drawCircle(
-                                color = Accent,
-                                radius = size.minDimension / 2f
-                            )
-                        }
-                    }
-                },
-                track = SliderDefaults.track(
-                    colors = SliderDefaults.colors(
-                        activeTrackColor = AccentDim.copy(alpha = 0.4f),
-                        inactiveTrackColor = TextDim.copy(alpha = 0.4f)
-                    )
+                colors = SliderDefaults.colors(
+                    thumbColor = Accent,
+                    activeTrackColor = AccentDim.copy(alpha = 0.4f),
+                    inactiveTrackColor = TextDim.copy(alpha = 0.4f)
                 )
             )
 

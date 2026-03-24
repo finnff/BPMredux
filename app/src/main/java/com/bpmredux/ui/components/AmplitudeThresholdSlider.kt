@@ -18,6 +18,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.bpmredux.ui.theme.Accent
 import com.bpmredux.ui.theme.AccentDim
 import com.bpmredux.ui.theme.TextDim
@@ -34,13 +35,16 @@ fun AmplitudeThresholdSlider(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "T H R E S H O L D",
-            style = MaterialTheme.typography.labelLarge.copy(
-                letterSpacing = 2.sp
-            ),
-            color = TextSecondary
-        )
+        // Vertical text label (letters stacked)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            "THRESHOLD".forEach { ch ->
+                Text(
+                    text = ch.toString(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextSecondary
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(4.dp))
 
         // Custom vertical slider — large touch target, industrial look
@@ -122,13 +126,11 @@ fun AmplitudeThresholdSlider(
                 center = Offset(cx, thumbY)
             )
 
-            // Thumb line — wide horizontal bar
-            drawLine(
+            // Thumb circle
+            drawCircle(
                 color = Accent,
-                start = Offset(cx - 18f, thumbY),
-                end = Offset(cx + 18f, thumbY),
-                strokeWidth = 3f,
-                cap = StrokeCap.Round
+                radius = 8f,
+                center = Offset(cx, thumbY)
             )
         }
 

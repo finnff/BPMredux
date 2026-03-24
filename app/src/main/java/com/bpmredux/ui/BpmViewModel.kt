@@ -126,24 +126,23 @@ class BpmViewModel(
             val result = tempoEstimator.addOnsetSample(gatedOnset)
 
                 if (result != null) {
-                    val tapConfidence = tapProcessor.getConfidenceAt(timeMs)
-                    val final = if (tapConfidence > 0f && _uiState.value.tapBpm != null) {
-                        tempoEstimator.blendWithTap(_uiState.value.tapBpm!!, tapConfidence)
-                    } else {
-                        result
-                    }
+                val tapConfidence = tapProcessor.getConfidenceAt(timeMs)
+                val final = if (tapConfidence > 0f && _uiState.value.tapBpm != null) {
+                    tempoEstimator.blendWithTap(_uiState.value.tapBpm!!, tapConfidence)
+                } else {
+                    result
+                }
 
-                    // Round to 1 decimal
-                    val bpmRounded = (final.bpm * 10).toInt() / 10f
+                // Round to 1 decimal
+                val bpmRounded = (final.bpm * 10).toInt() / 10f
 
-                    _uiState.update {
-                        it.copy(
-                            currentBpm = bpmRounded,
-                            confidence = final.confidence,
-                            isAtRangeLimit = final.isAtRangeLimit,
-                            limitSide = final.limitSide
-                        )
-                    }
+                _uiState.update {
+                    it.copy(
+                        currentBpm = bpmRounded,
+                        confidence = final.confidence,
+                        isAtRangeLimit = final.isAtRangeLimit,
+                        limitSide = final.limitSide
+                    )
                 }
             }
         }
@@ -153,7 +152,7 @@ class BpmViewModel(
             it.copy(
                 spectrogramColumn = magnitudes,
                 bandEnergies = bandEnergy,
-                beatEvent = if (isOnset) timeMs else it.beatEvent
+                beatEvent = if (rawOnset > 0) timeMs else it.beatEvent
             )
         }
     }

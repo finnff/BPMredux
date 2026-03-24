@@ -7,6 +7,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -75,37 +76,40 @@ fun BandToggleRow(
                             shape
                         )
                         .clickable { onToggle(band) },
-                    contentAlignment = Alignment.CenterStart
+                    contentAlignment = Alignment.Center
                 ) {
-                    // Glowing cyan dot indicator
-                    if (selected) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        // Dot indicator (always visible, changes color based on selection)
                         Canvas(
                             modifier = Modifier
-                                .padding(start = 8.dp, end = 4.dp)
+                                .padding(end = 4.dp)
                                 .size(6.dp)
                         ) {
                             // Outer glow
                             drawCircle(
-                                color = Accent.copy(alpha = 0.3f),
+                                color = if (selected) Accent.copy(alpha = 0.3f) else TextDim.copy(alpha = 0.2f),
                                 radius = size.minDimension
                             )
                             // Inner glow
                             drawCircle(
-                                color = Accent.copy(alpha = 0.6f),
+                                color = if (selected) Accent.copy(alpha = 0.6f) else TextDim.copy(alpha = 0.4f),
                                 radius = size.minDimension * 0.7f
                             )
                             // Core dot
                             drawCircle(
-                                color = Accent,
+                                color = if (selected) Accent else TextDim,
                                 radius = size.minDimension * 0.4f
                             )
                         }
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (selected) Accent else TextSecondary
+                        )
                     }
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = if (selected) Accent else TextSecondary
-                    )
                 }
             }
         }

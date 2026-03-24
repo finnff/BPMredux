@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.bpmredux.ui.theme.Accent
 import com.bpmredux.ui.theme.AccentDim
 import com.bpmredux.ui.theme.TextDim
@@ -34,7 +35,7 @@ fun StabilitySlider(
                 letterSpacing = 3.sp
             ),
             color = TextDim,
-            modifier = Modifier.align(Alignment.Center)
+            modifier = Modifier.align(Alignment.CenterHorizontally)
         )
         Box {
             // Tick marks behind slider
