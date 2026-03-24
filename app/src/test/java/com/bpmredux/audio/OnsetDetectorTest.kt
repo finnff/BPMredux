@@ -25,8 +25,8 @@ class OnsetDetectorTest {
         for (frame in 0..30) {
             val mags = if (frame < 25) silent else loud
             val energy = bandFilter.filter(mags)
-            val result = detector.process(mags, energy, frame * 23L)
-            if (result) detectedOnset = true
+            val flux = detector.process(mags, energy, frame * 23L)
+            if (flux > 0f) detectedOnset = true
         }
 
         assertTrue("Should detect onset from sudden spike", detectedOnset)
@@ -49,9 +49,9 @@ class OnsetDetectorTest {
         // Immediate second onset (within 100ms)
         val second = detector.process(loud, bandFilter.filter(loud), 25 * 23L + 50)
 
-        // Can't both be true if interval enforced
-        if (first) {
-            assertFalse("Second onset within 100ms should be suppressed", second)
+        // Can't both be positive if interval enforced
+        if (first > 0f) {
+            assertFalse("Second onset within 100ms should be suppressed (returns 0)", second <= 0f)
         }
     }
 
@@ -62,7 +62,8 @@ class OnsetDetectorTest {
         var anyOnset = false
 
         for (frame in 0..50) {
-            if (detector.process(constant, bandFilter.filter(constant), frame * 23L)) {
+            val flux = detector.process(constant, bandFilter.filter(constant), frame * 23L)
+            if (flux > 0f) {
                 anyOnset = true
             }
         }

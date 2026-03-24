@@ -28,26 +28,14 @@ fun StabilitySlider(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = "RESPONSIVE",
-                style = MaterialTheme.typography.labelSmall,
-                color = TextDim,
-                modifier = Modifier.align(Alignment.CenterStart)
-            )
-            Text(
-                text = "STABILITY",
-                style = MaterialTheme.typography.labelSmall,
-                color = TextDim,
-                modifier = Modifier.align(Alignment.Center)
-            )
-            Text(
-                text = "STABLE",
-                style = MaterialTheme.typography.labelSmall,
-                color = TextDim,
-                modifier = Modifier.align(Alignment.CenterEnd)
-            )
-        }
+        Text(
+            text = "S T A B I L I T Y",
+            style = MaterialTheme.typography.labelSmall.copy(
+                letterSpacing = 3.sp
+            ),
+            color = TextDim,
+            modifier = Modifier.align(Alignment.Center)
+        )
         Box {
             // Tick marks behind slider
             Canvas(

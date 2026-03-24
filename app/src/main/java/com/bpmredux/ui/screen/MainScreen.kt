@@ -38,8 +38,8 @@ import com.bpmredux.ui.components.BandToggleRow
 import com.bpmredux.ui.components.BpmDisplay
 import com.bpmredux.ui.components.BpmRangeSlider
 import com.bpmredux.ui.components.Spectrogram
-import com.bpmredux.ui.components.StabilitySlider
 import com.bpmredux.ui.components.TapArea
+import com.bpmredux.ui.components.VerticalStabilitySlider
 import com.bpmredux.ui.theme.AccentDim
 import com.bpmredux.ui.theme.Black
 import com.bpmredux.ui.theme.TextDim
@@ -100,7 +100,7 @@ fun MainScreen(
                 .statusBarsPadding()
                 .padding(top = 4.dp)
         ) {
-            // BPM Display with threshold slider alongside
+            // BPM Display with threshold slider on left and stability slider on right
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -116,19 +116,18 @@ fun MainScreen(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .padding(end = 8.dp),
+                        .padding(horizontal = 4.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     BpmDisplay(uiState = uiState)
                 }
-            }
 
-            // Stability slider
-            StabilitySlider(
-                stability = uiState.stability,
-                onStabilityChange = onStabilityChange,
-                modifier = Modifier.padding(top = 4.dp)
-            )
+                VerticalStabilitySlider(
+                    stability = uiState.stability,
+                    onStabilityChange = onStabilityChange,
+                    modifier = Modifier.fillMaxHeight()
+                )
+            }
 
             // Range slider
             BpmRangeSlider(

@@ -66,8 +66,8 @@ class TempoEstimator {
         }
     }
 
-    fun addOnsetSample(isOnset: Boolean): Result? {
-        odfBuffer[odfWritePos % odfBufferSize] = if (isOnset) 1f else 0f
+    fun addOnsetSample(onsetValue: Float): Result? {
+        odfBuffer[odfWritePos % odfBufferSize] = onsetValue
         odfWritePos++
         odfCount = minOf(odfCount + 1, odfBufferSize)
         samplesSinceUpdate++
@@ -104,18 +104,30 @@ class TempoEstimator {
             acf[lag] = sum
         }
 
-        // Find best in-range peak
-        var bestLag = lagMin
-        var bestVal = acf[lagMin]
-        var secondBest = 0f
-        for (lag in lagMin + 1..lagMax) {
-            if (acf[lag] > bestVal) {
-                secondBest = bestVal
-                bestVal = acf[lag]
-                bestLag = lag
-            } else if (acf[lag] > secondBest) {
-                secondBest = acf[lag]
+        // Find best in-range peak using local maxima detection
+        val peaks = mutableListOf<Pair<Int, Float>>()
+        for (lag in lagMin + 1 until lagMax) {
+            if (acf[lag] > acf[lag - 1] && acf[lag] >= acf[lag + 1]) {
+                peaks.add(lag to acf[lag])
             }
+        }
+        // Boundary checks
+        if (acf[lagMin] >= acf[lagMin + 1]) peaks.add(lagMin to acf[lagMin])
+        if (acf[lagMax] >= acf[lagMax - 1]) peaks.add(lagMax to acf[lagMax])
+
+        peaks.sortByDescending { it.second }
+
+        var bestLag: Int
+        var bestVal: Float
+        var secondBestPeakVal: Float
+        if (peaks.isNotEmpty()) {
+            bestLag = peaks[0].first
+            bestVal = peaks[0].second
+            secondBestPeakVal = if (peaks.size >= 2) peaks[1].second else 0f
+        } else {
+            bestLag = if (acf[lagMin] >= acf[lagMax]) lagMin else lagMax
+            bestVal = acf[bestLag]
+            secondBestPeakVal = 0f
         }
 
         if (bestVal <= 0f) return null
@@ -127,6 +139,8 @@ class TempoEstimator {
             if (doubleVal > bestVal * 0.8f) {
                 bestLag = doubleLag
                 bestVal = doubleVal
+                // Find second best peak again (excluding the new best)
+                secondBestPeakVal = if (peaks.size >= 2) peaks[1].second else 0f
             }
         }
 
@@ -137,12 +151,25 @@ class TempoEstimator {
             if (halfVal > bestVal * 0.9f) {
                 bestLag = halfLag
                 bestVal = halfVal
+                // Find second best peak again (excluding the new best)
+                secondBestPeakVal = if (peaks.size >= 2) peaks[1].second else 0f
             }
         }
 
-        val rawBpm = 60f * ODF_SAMPLE_RATE / bestLag
-        val confidence = if (secondBest > 0f) {
-            minOf(1f, (bestVal / secondBest - 1f) * 2f)
+        // Parabolic interpolation for sub-sample precision
+        var refinedLag = bestLag.toFloat()
+        if (bestLag > extLagMin && bestLag < effectiveLagMax) {
+            val y0 = acf[bestLag - 1]
+            val y1 = acf[bestLag]
+            val y2 = acf[bestLag + 1]
+            val denom = 2f * (2f * y1 - y0 - y2)
+            if (denom > 0f) {
+                refinedLag = bestLag.toFloat() + (y0 - y2) / denom
+            }
+        }
+        val rawBpm = 60f * ODF_SAMPLE_RATE / refinedLag
+        val confidence = if (secondBestPeakVal > 0f) {
+            minOf(1f, (bestVal / secondBestPeakVal - 1f) * 2f)
         } else 1f
 
         // Range-limit pegging detection

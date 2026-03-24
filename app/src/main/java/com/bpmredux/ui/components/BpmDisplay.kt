@@ -73,7 +73,7 @@ fun BpmDisplay(
             useCenter = false,
             topLeft = arcOffset,
             size = arcRect,
-            style = Stroke(width = 8f, cap = StrokeCap.Round)
+            style = Stroke(width = 10f, cap = StrokeCap.Round)
         )
         // Background arc core
         drawArc(
@@ -83,7 +83,7 @@ fun BpmDisplay(
             useCenter = false,
             topLeft = arcOffset,
             size = arcRect,
-            style = Stroke(width = 1.5f, cap = StrokeCap.Round)
+            style = Stroke(width = 2f, cap = StrokeCap.Round)
         )
 
         // Range highlight glow
@@ -96,7 +96,7 @@ fun BpmDisplay(
             useCenter = false,
             topLeft = arcOffset,
             size = arcRect,
-            style = Stroke(width = 12f, cap = StrokeCap.Round)
+            style = Stroke(width = 14f, cap = StrokeCap.Round)
         )
         // Range highlight core
         drawArc(
@@ -106,7 +106,7 @@ fun BpmDisplay(
             useCenter = false,
             topLeft = arcOffset,
             size = arcRect,
-            style = Stroke(width = 3f, cap = StrokeCap.Round)
+            style = Stroke(width = 4f, cap = StrokeCap.Round)
         )
 
         // Tick marks every 20 BPM

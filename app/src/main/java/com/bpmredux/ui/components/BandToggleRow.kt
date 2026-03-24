@@ -75,8 +75,32 @@ fun BandToggleRow(
                             shape
                         )
                         .clickable { onToggle(band) },
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.CenterStart
                 ) {
+                    // Glowing cyan dot indicator
+                    if (selected) {
+                        Canvas(
+                            modifier = Modifier
+                                .padding(start = 8.dp, end = 4.dp)
+                                .size(6.dp)
+                        ) {
+                            // Outer glow
+                            drawCircle(
+                                color = Accent.copy(alpha = 0.3f),
+                                radius = size.minDimension
+                            )
+                            // Inner glow
+                            drawCircle(
+                                color = Accent.copy(alpha = 0.6f),
+                                radius = size.minDimension * 0.7f
+                            )
+                            // Core dot
+                            drawCircle(
+                                color = Accent,
+                                radius = size.minDimension * 0.4f
+                            )
+                        }
+                    }
                     Text(
                         text = label,
                         style = MaterialTheme.typography.labelMedium,

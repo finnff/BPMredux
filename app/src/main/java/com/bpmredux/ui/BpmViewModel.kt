@@ -114,20 +114,16 @@ class BpmViewModel(
         }
         onsetDetector.activeBands = _uiState.value.activeBands
 
-        // Only run onset detection if above amplitude threshold
-        val isOnset = if (aboveThreshold) {
-            onsetDetector.process(magnitudes, bandEnergy, timeMs)
-        } else {
-            false
-        }
+        // Amplitude gate - always call process(), gate the result (continuous-valued)
+        val rawOnset = onsetDetector.process(magnitudes, bandEnergy, timeMs)
+        val gatedOnset = if (aboveThreshold) rawOnset else 0f
 
         samplesSinceOdf += AudioCapture.HOP_SIZE
         while (samplesSinceOdf >= odfSampleInterval) {
             samplesSinceOdf -= odfSampleInterval
 
-            // Only feed ODF if above threshold
-            if (aboveThreshold) {
-                val result = tempoEstimator.addOnsetSample(isOnset)
+            // Feed ODF with gated continuous-valued onset
+            val result = tempoEstimator.addOnsetSample(gatedOnset)
 
                 if (result != null) {
                     val tapConfidence = tapProcessor.getConfidenceAt(timeMs)

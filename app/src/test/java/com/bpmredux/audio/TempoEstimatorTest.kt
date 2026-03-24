@@ -24,8 +24,9 @@ class TempoEstimatorTest {
 
         // Run for 4 seconds of ODF samples (400 buffer)
         for (sample in 0 until 400) {
-            val isOnset = sample % onsetInterval == 0
-            val result = estimator.addOnsetSample(isOnset)
+            // Pass flux value (1.0f) on onset, 0f otherwise
+            val onsetValue = if (sample % onsetInterval == 0) 1.0f else 0f
+            val result = estimator.addOnsetSample(onsetValue)
             if (result != null) lastResult = result
         }
 
@@ -43,8 +44,9 @@ class TempoEstimatorTest {
 
         var lastResult: TempoEstimator.Result? = null
         for (sample in 0 until 400) {
-            val isOnset = sample % onsetInterval == 0
-            val result = estimator.addOnsetSample(isOnset)
+            // Pass flux value (1.0f) on onset, 0f otherwise
+            val onsetValue = if (sample % onsetInterval == 0) 1.0f else 0f
+            val result = estimator.addOnsetSample(onsetValue)
             if (result != null) lastResult = result
         }
 
@@ -65,8 +67,9 @@ class TempoEstimatorTest {
 
         var lastResult: TempoEstimator.Result? = null
         for (sample in 0 until 400) {
-            val isOnset = sample % onsetInterval == 0
-            val result = estimator.addOnsetSample(isOnset)
+            // Pass flux value (1.0f) on onset, 0f otherwise
+            val onsetValue = if (sample % onsetInterval == 0) 1.0f else 0f
+            val result = estimator.addOnsetSample(onsetValue)
             if (result != null) lastResult = result
         }
 
@@ -89,8 +92,9 @@ class TempoEstimatorTest {
 
         var lastResult: TempoEstimator.Result? = null
         for (sample in 0 until 400) {
-            val isOnset = sample % onsetInterval == 0
-            val result = estimator.addOnsetSample(isOnset)
+            // Pass flux value (1.0f) on onset, 0f otherwise
+            val onsetValue = if (sample % onsetInterval == 0) 1.0f else 0f
+            val result = estimator.addOnsetSample(onsetValue)
             if (result != null) lastResult = result
         }
 
@@ -111,15 +115,17 @@ class TempoEstimatorTest {
 
         // Phase 1: 120 BPM
         for (sample in 0 until 300) {
-            val isOnset = sample % interval120 == 0
-            val result = estimator.addOnsetSample(isOnset)
+            // Pass flux value (1.0f) on onset, 0f otherwise
+            val onsetValue = if (sample % interval120 == 0) 1.0f else 0f
+            val result = estimator.addOnsetSample(onsetValue)
             if (result != null) results.add(result.bpm)
         }
 
         // Phase 2: 140 BPM
         for (sample in 300 until 600) {
-            val isOnset = sample % interval140 == 0
-            val result = estimator.addOnsetSample(isOnset)
+            // Pass flux value (1.0f) on onset, 0f otherwise
+            val onsetValue = if (sample % interval140 == 0) 1.0f else 0f
+            val result = estimator.addOnsetSample(onsetValue)
             if (result != null) results.add(result.bpm)
         }
 

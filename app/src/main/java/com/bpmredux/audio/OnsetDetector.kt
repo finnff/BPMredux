@@ -55,24 +55,33 @@ class OnsetDetector {
         if (s != Sensitivity.AUTO) autoThreshold = s.baseThreshold
     }
 
-    fun process(magnitudes: FloatArray, bandEnergy: BandEnergy, timeMs: Long): Boolean {
-        val prev = previousMagnitudes
-        previousMagnitudes = magnitudes.copyOf()
+    fun process(magnitudes: FloatArray, bandEnergy: BandEnergy, timeMs: Long): Float {
+        if (previousMagnitudes == null) {
+            previousMagnitudes = magnitudes.copyOf()
+            return 0f
+        }
 
-        if (prev == null) return false
+        // Enforce minimum onset interval
+        if (timeMs - lastOnsetTime < MIN_ONSET_INTERVAL_MS) {
+            previousMagnitudes = magnitudes.copyOf()
+            return 0f
+        }
 
         // Compute spectral flux for active bands only
         var flux = 0f
-        if (Band.SUB in activeBands) flux += bandFlux(prev, magnitudes, 4, 14)
-        if (Band.MID in activeBands) flux += bandFlux(prev, magnitudes, 14, 186)
-        if (Band.HI in activeBands) flux += bandFlux(prev, magnitudes, 186, minOf(929, magnitudes.size))
+        if (Band.SUB in activeBands) flux += bandFlux(previousMagnitudes!!, magnitudes, 4, 14)
+        if (Band.MID in activeBands) flux += bandFlux(previousMagnitudes!!, magnitudes, 14, 186)
+        if (Band.HI in activeBands) flux += bandFlux(previousMagnitudes!!, magnitudes, 186, minOf(929, magnitudes.size))
 
         // Update history
         fluxHistory[historyPos % historySize] = flux
         historyPos++
         historyCount = minOf(historyCount + 1, historySize)
 
-        if (historyCount < 4) return false
+        if (historyCount < 4) {
+            previousMagnitudes = magnitudes.copyOf()
+            return 0f
+        }
 
         // Compute mean and stddev
         var sum = 0f
@@ -91,7 +100,9 @@ class OnsetDetector {
         val isOnset = flux > mean + threshold * stddev
 
         // Minimum inter-onset interval
-        if (isOnset && timeMs - lastOnsetTime < MIN_ONSET_INTERVAL_MS) return false
+        if (isOnset && timeMs - lastOnsetTime < MIN_ONSET_INTERVAL_MS) {
+            return 0f
+        }
 
         if (isOnset) {
             lastOnsetTime = timeMs
@@ -111,7 +122,7 @@ class OnsetDetector {
             }
         }
 
-        return isOnset
+        return if (isOnset) flux else 0f
     }
 
     private fun bandFlux(prev: FloatArray, curr: FloatArray, from: Int, to: Int): Float {

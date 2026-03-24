@@ -5,7 +5,7 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
@@ -24,9 +24,9 @@ import com.bpmredux.ui.theme.TextDim
 import com.bpmredux.ui.theme.TextSecondary
 
 @Composable
-fun AmplitudeThresholdSlider(
-    threshold: Float,
-    onThresholdChange: (Float) -> Unit,
+fun VerticalStabilitySlider(
+    stability: Float,
+    onStabilityChange: (Float) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -35,7 +35,7 @@ fun AmplitudeThresholdSlider(
     ) {
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "T H R E S H O L D",
+            text = "S T A B I L I T Y",
             style = MaterialTheme.typography.labelLarge.copy(
                 letterSpacing = 2.sp
             ),
@@ -43,7 +43,7 @@ fun AmplitudeThresholdSlider(
         )
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Custom vertical slider — large touch target, industrial look
+        // Custom vertical slider
         Canvas(
             modifier = Modifier
                 .weight(1f)
@@ -59,13 +59,13 @@ fun AmplitudeThresholdSlider(
 
                             // Set on initial tap
                             val y = down.position.y.coerceIn(trackTop, trackBottom)
-                            onThresholdChange(((trackBottom - y) / trackH * 0.5f).coerceIn(0f, 0.5f))
+                            onStabilityChange(((trackBottom - y) / trackH).coerceIn(0f, 1f))
 
                             // Follow drag
                             drag(down.id) { change ->
                                 change.consume()
                                 val dy = change.position.y.coerceIn(trackTop, trackBottom)
-                                onThresholdChange(((trackBottom - dy) / trackH * 0.5f).coerceIn(0f, 0.5f))
+                                onStabilityChange(((trackBottom - dy) / trackH).coerceIn(0f, 1f))
                             }
                         }
                     }
@@ -87,25 +87,25 @@ fun AmplitudeThresholdSlider(
             )
 
             // Tick marks along track
-            for (i in 0..5) {
-                val tickY = trackBottom - (i / 5f) * trackH
-                val tickW = if (i == 0 || i == 5) 10f else 6f
+            for (i in 0..10) {
+                val tickY = trackBottom - (i / 10f) * trackH
+                val tickW = if (i % 2 == 0) 10f else 6f
                 drawLine(
-                    color = TextDim,
+                    color = if (i % 2 == 0) TextSecondary else TextDim,
                     start = Offset(cx - tickW, tickY),
                     end = Offset(cx + tickW, tickY),
                     strokeWidth = 1f
                 )
             }
 
-            // Thumb position (0 at bottom, 0.5 at top)
-            val thumbY = trackBottom - (threshold / 0.5f) * trackH
+            // Thumb position (0 at bottom, 1 at top)
+            val thumbY = trackBottom - (stability) * trackH
 
-            // Active portion of track (below thumb = inactive, above = active)
+            // Active portion of track (above thumb = active)
             drawLine(
                 color = AccentDim.copy(alpha = 0.5f),
                 start = Offset(cx, thumbY),
-                end = Offset(cx, trackBottom),
+                end = Offset(cx, trackTop),
                 strokeWidth = 4f,
                 cap = StrokeCap.Round
             )
@@ -134,7 +134,9 @@ fun AmplitudeThresholdSlider(
 
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "${(threshold * 200).toInt()}",
+            text = if (stability < 0.3f) "RESPONSIVE"
+            else if (stability > 0.7f) "STABLE"
+            else "MID",
             style = MaterialTheme.typography.labelSmall,
             color = TextDim
         )

@@ -57,7 +57,9 @@ fun BpmRangeSlider(
             )
             Text(
                 text = "RANGE",
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                ),
                 color = TextDim,
                 modifier = Modifier.align(Alignment.Center)
             )
@@ -97,10 +99,26 @@ fun BpmRangeSlider(
                     onRangeChange(range.start, range.endInclusive)
                 },
                 valueRange = 60f..240f,
-                colors = SliderDefaults.colors(
-                    thumbColor = Accent,
-                    activeTrackColor = AccentDim.copy(alpha = 0.4f),
-                    inactiveTrackColor = TextDim.copy(alpha = 0.4f)
+                steps = 0,
+                thumb = {
+                    Box(
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .size(16.dp)
+                    ) {
+                        Canvas(modifier = Modifier.fillMaxSize()) {
+                            drawCircle(
+                                color = Accent,
+                                radius = size.minDimension / 2f
+                            )
+                        }
+                    }
+                },
+                track = SliderDefaults.track(
+                    colors = SliderDefaults.colors(
+                        activeTrackColor = AccentDim.copy(alpha = 0.4f),
+                        inactiveTrackColor = TextDim.copy(alpha = 0.4f)
+                    )
                 )
             )
 
