@@ -65,7 +65,8 @@ class MainActivity : ComponentActivity() {
                         onBandToggle = vm::onBandToggle,
                         onToggleDetection = vm::toggleDetection,
                         onToggleScreenDim = vm::toggleScreenDim,
-                        onAmplitudeThresholdChange = vm::onAmplitudeThresholdChange
+                        onAmplitudeThresholdChange = vm::onAmplitudeThresholdChange,
+                        onStabilityChange = vm::onStabilityChange
                     )
                 }
             }

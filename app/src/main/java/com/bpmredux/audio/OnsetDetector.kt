@@ -3,7 +3,6 @@ package com.bpmredux.audio
 class OnsetDetector {
 
     companion object {
-        private const val HISTORY_SIZE = 22 // ~0.5s at ~43 fps
         private const val MIN_ONSET_INTERVAL_MS = 100L
         private const val AUTO_TARGET_MIN = 1f // onsets per second
         private const val AUTO_TARGET_MAX = 8f
@@ -13,7 +12,9 @@ class OnsetDetector {
         LOW(2.0f), MEDIUM(1.5f), HIGH(1.0f), AUTO(1.5f)
     }
 
-    private val fluxHistory = FloatArray(HISTORY_SIZE)
+    // Stability-adjustable history size (default = 22 at level 0.5)
+    private var historySize = 22
+    private var fluxHistory = FloatArray(historySize)
     private var historyPos = 0
     private var historyCount = 0
     private var previousMagnitudes: FloatArray? = null
@@ -24,6 +25,30 @@ class OnsetDetector {
     private var onsetWindowStart = 0L
 
     var activeBands: Set<Band> = setOf(Band.SUB, Band.MID, Band.HI)
+
+    /**
+     * Set stability level (0-1).
+     * 0 = most responsive (smaller history, faster adaptation)
+     * 1 = most stable (larger history, slower adaptation)
+     */
+    fun setStability(level: Float) {
+        // HISTORY_SIZE: 10 (responsive) to 40 (stable), default 22 at level 0.5
+        val newSize = (10 + level * 30).toInt()
+
+        if (newSize != historySize) {
+            // Reallocate buffer if size changed (preserve existing data if possible)
+            val newBuffer = FloatArray(newSize)
+            val copyCount = minOf(historyCount, newSize)
+            for (i in 0 until copyCount) {
+                val srcIdx = (historyPos - historyCount + i + historySize) % historySize
+                newBuffer[i] = fluxHistory[srcIdx]
+            }
+            fluxHistory = newBuffer
+            historySize = newSize
+            historyPos = copyCount % newSize
+            historyCount = minOf(historyCount, newSize)
+        }
+    }
 
     fun setSensitivity(s: Sensitivity) {
         sensitivity = s
@@ -43,9 +68,9 @@ class OnsetDetector {
         if (Band.HI in activeBands) flux += bandFlux(prev, magnitudes, 186, minOf(929, magnitudes.size))
 
         // Update history
-        fluxHistory[historyPos % HISTORY_SIZE] = flux
+        fluxHistory[historyPos % historySize] = flux
         historyPos++
-        historyCount = minOf(historyCount + 1, HISTORY_SIZE)
+        historyCount = minOf(historyCount + 1, historySize)
 
         if (historyCount < 4) return false
 
@@ -101,6 +126,7 @@ class OnsetDetector {
 
     fun reset() {
         previousMagnitudes = null
+        fluxHistory.fill(0f)
         historyPos = 0
         historyCount = 0
         lastOnsetTime = 0L

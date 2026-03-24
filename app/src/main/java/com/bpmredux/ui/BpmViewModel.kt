@@ -35,6 +35,7 @@ data class BpmUiState(
     val isAtRangeLimit: Boolean = false,
     val limitSide: RangeLimitSide? = null,
     val amplitudeThreshold: Float = 0.1f,
+    val stability: Float = 0.5f, // 0 = responsive, 1 = stable, default 0.5
     val hasPermission: Boolean = false,
     val isScreenDimmed: Boolean = false
 )
@@ -75,6 +76,9 @@ class BpmViewModel(
         tempoEstimator.reset()
         tempoEstimator.bpmRangeMin = _uiState.value.bpmRangeMin
         tempoEstimator.bpmRangeMax = _uiState.value.bpmRangeMax
+        // Initialize stability settings
+        tempoEstimator.setStability(_uiState.value.stability)
+        onsetDetector.setStability(_uiState.value.stability)
 
         detectionJob = viewModelScope.launch(Dispatchers.Default) {
             audioCapture.audioFlow().collect { frame ->
@@ -103,6 +107,11 @@ class BpmViewModel(
         val rms = sqrt(sumSquares / frame.size).toFloat()
         val aboveThreshold = rms >= _uiState.value.amplitudeThreshold
 
+        // Apply stability settings if changed
+        if (_uiState.value.stability != 0.5f) {
+            tempoEstimator.setStability(_uiState.value.stability)
+            onsetDetector.setStability(_uiState.value.stability)
+        }
         onsetDetector.activeBands = _uiState.value.activeBands
 
         // Only run onset detection if above amplitude threshold
@@ -180,6 +189,13 @@ class BpmViewModel(
 
     fun onAmplitudeThresholdChange(threshold: Float) {
         _uiState.update { it.copy(amplitudeThreshold = threshold) }
+    }
+
+    fun onStabilityChange(stability: Float) {
+        _uiState.update { it.copy(stability = stability) }
+        // Wire stability to both DSP components
+        tempoEstimator.setStability(stability)
+        onsetDetector.setStability(stability)
     }
 
     fun toggleScreenDim() {

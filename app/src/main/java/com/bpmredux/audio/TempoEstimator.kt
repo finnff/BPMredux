@@ -5,10 +5,7 @@ enum class RangeLimitSide { MIN, MAX }
 class TempoEstimator {
 
     companion object {
-        private const val ODF_SAMPLE_RATE = 100 // Hz — onset detection function sample rate
-        private const val ODF_BUFFER_SIZE = 400 // 4 seconds at 100 Hz
-        private const val UPDATE_INTERVAL_SAMPLES = 20 // ~0.2s
-        private const val EMA_ALPHA = 0.3f
+        private const val ODF_SAMPLE_RATE = 100f // Hz — onset detection function sample rate
         // Extended range for pegging detection (40–250 BPM equivalent)
         private const val EXTENDED_BPM_MIN = 40f
         private const val EXTENDED_BPM_MAX = 250f
@@ -22,7 +19,12 @@ class TempoEstimator {
         val limitSide: RangeLimitSide? = null
     )
 
-    private val odfBuffer = FloatArray(ODF_BUFFER_SIZE)
+    // Stability-adjustable parameters (default = middle/stable at level 0.5)
+    private var emaAlpha = 0.3f
+    private var odfBufferSize = 400
+    private var updateIntervalSamples = 20
+
+    private var odfBuffer = FloatArray(odfBufferSize)
     private var odfWritePos = 0
     private var odfCount = 0
     private var samplesSinceUpdate = 0
@@ -33,13 +35,44 @@ class TempoEstimator {
     var bpmRangeMin = 120f
     var bpmRangeMax = 180f
 
+    /**
+     * Set stability level (0-1).
+     * 0 = most responsive (less smoothing, smaller buffer, more frequent updates)
+     * 1 = most stable (more smoothing, larger buffer, less frequent updates)
+     */
+    fun setStability(level: Float) {
+        // EMA_ALPHA: 0.05 (stable) to 0.6 (responsive), default 0.3 at level 0.5
+        // Lower alpha = more smoothing = more stable
+        emaAlpha = 0.6f - level * 0.55f // 0.6 at 0, 0.05 at 1
+
+        // ODF_BUFFER_SIZE: 200 (responsive) to 600 (stable), default 400 at level 0.5
+        odfBufferSize = (200 + level * 400).toInt()
+
+        // UPDATE_INTERVAL_SAMPLES: 10 (responsive) to 40 (stable), default 20 at level 0.5
+        updateIntervalSamples = (10 + level * 30).toInt()
+
+        // Reallocate buffer if size changed (preserve existing data if possible)
+        if (odfBuffer.size != odfBufferSize) {
+            val newBuffer = FloatArray(odfBufferSize)
+            // Copy as much existing data as will fit
+            val copyCount = minOf(odfCount, odfBufferSize)
+            for (i in 0 until copyCount) {
+                val srcIdx = (odfWritePos - odfCount + i + odfBuffer.size) % odfBuffer.size
+                newBuffer[i] = odfBuffer[srcIdx]
+            }
+            odfBuffer = newBuffer
+            odfWritePos = copyCount
+            odfCount = copyCount
+        }
+    }
+
     fun addOnsetSample(isOnset: Boolean): Result? {
-        odfBuffer[odfWritePos % ODF_BUFFER_SIZE] = if (isOnset) 1f else 0f
+        odfBuffer[odfWritePos % odfBufferSize] = if (isOnset) 1f else 0f
         odfWritePos++
-        odfCount = minOf(odfCount + 1, ODF_BUFFER_SIZE)
+        odfCount = minOf(odfCount + 1, odfBufferSize)
         samplesSinceUpdate++
 
-        if (samplesSinceUpdate < UPDATE_INTERVAL_SAMPLES || odfCount < ODF_SAMPLE_RATE * 2) {
+        if (samplesSinceUpdate < updateIntervalSamples || odfCount < ODF_SAMPLE_RATE * 2) {
             return null
         }
         samplesSinceUpdate = 0
@@ -64,8 +97,8 @@ class TempoEstimator {
             var sum = 0f
             val n = bufLen - lag
             for (i in 0 until n) {
-                val idx1 = (start + i) % ODF_BUFFER_SIZE
-                val idx2 = (start + i + lag) % ODF_BUFFER_SIZE
+                val idx1 = (start + i) % odfBufferSize
+                val idx2 = (start + i + lag) % odfBufferSize
                 sum += odfBuffer[idx1] * odfBuffer[idx2]
             }
             acf[lag] = sum
@@ -145,7 +178,7 @@ class TempoEstimator {
         val smoothedBpm = if (lastSmoothedBpm == 0f) {
             rawBpm
         } else {
-            EMA_ALPHA * rawBpm + (1f - EMA_ALPHA) * lastSmoothedBpm
+            emaAlpha * rawBpm + (1f - emaAlpha) * lastSmoothedBpm
         }
         lastSmoothedBpm = smoothedBpm
 

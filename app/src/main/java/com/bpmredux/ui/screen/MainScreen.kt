@@ -38,6 +38,7 @@ import com.bpmredux.ui.components.BandToggleRow
 import com.bpmredux.ui.components.BpmDisplay
 import com.bpmredux.ui.components.BpmRangeSlider
 import com.bpmredux.ui.components.Spectrogram
+import com.bpmredux.ui.components.StabilitySlider
 import com.bpmredux.ui.components.TapArea
 import com.bpmredux.ui.theme.AccentDim
 import com.bpmredux.ui.theme.Black
@@ -54,7 +55,8 @@ fun MainScreen(
     onBandToggle: (Band) -> Unit,
     onToggleDetection: () -> Unit,
     onToggleScreenDim: () -> Unit,
-    onAmplitudeThresholdChange: (Float) -> Unit
+    onAmplitudeThresholdChange: (Float) -> Unit,
+    onStabilityChange: (Float) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -120,6 +122,13 @@ fun MainScreen(
                     BpmDisplay(uiState = uiState)
                 }
             }
+
+            // Stability slider
+            StabilitySlider(
+                stability = uiState.stability,
+                onStabilityChange = onStabilityChange,
+                modifier = Modifier.padding(top = 4.dp)
+            )
 
             // Range slider
             BpmRangeSlider(

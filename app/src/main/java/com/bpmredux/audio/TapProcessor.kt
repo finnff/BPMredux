@@ -17,6 +17,7 @@ class TapProcessor {
 
     private val tapTimestamps = ArrayDeque<Long>(MAX_TAPS)
     private var lastTapTime = 0L
+    private var lastTapConfidence = 0f
 
     fun tap(timeMs: Long): Result {
         // Reset if too long since last tap
@@ -54,6 +55,7 @@ class TapProcessor {
         val stddev = kotlin.math.sqrt(variance)
         val confidence = maxOf(0f, minOf(1f, (1.0 - stddev / mean).toFloat()))
 
+        lastTapConfidence = confidence
         return Result(bpm, confidence, tapTimestamps.size)
     }
 
@@ -64,10 +66,12 @@ class TapProcessor {
         return when {
             elapsed > RESET_AFTER_MS -> 0f
             elapsed > DECAY_START_MS -> {
-                val decay = 1f - (elapsed - DECAY_START_MS).toFloat() / (RESET_AFTER_MS - DECAY_START_MS)
-                maxOf(0f, decay)
+                val decayDuration = RESET_AFTER_MS - DECAY_START_MS
+                val decayElapsed = elapsed - DECAY_START_MS
+                val decayFactor = 1f - (decayElapsed / decayDuration)
+                maxOf(0f, lastTapConfidence * decayFactor)
             }
-            else -> 1f
+            else -> lastTapConfidence
         }
     }
 
