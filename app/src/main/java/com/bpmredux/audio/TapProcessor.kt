@@ -68,7 +68,7 @@ class TapProcessor {
             elapsed > DECAY_START_MS -> {
                 val decayDuration = RESET_AFTER_MS - DECAY_START_MS
                 val decayElapsed = elapsed - DECAY_START_MS
-                val decayFactor = 1f - (decayElapsed / decayDuration)
+                val decayFactor = 1f - (decayElapsed.toFloat() / decayDuration.toFloat())
                 maxOf(0f, lastTapConfidence * decayFactor)
             }
             else -> lastTapConfidence
